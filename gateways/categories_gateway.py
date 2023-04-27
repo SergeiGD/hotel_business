@@ -296,7 +296,7 @@ class CategoriesGateway:
 
     @staticmethod
     def get_all(db: Session):
-        return db.query(Category).filter(date_deleted=None)
+        return db.query(Category).filter(date_deleted=None).all()
 
     @staticmethod
     def get_by_id(category_id: int, db: Session):

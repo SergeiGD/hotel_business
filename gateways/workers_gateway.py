@@ -20,7 +20,7 @@ class WorkersGateway:
 
     @staticmethod
     def get_all(db: Session):
-        return db.query(Worker).filter_by(date_deleted=None)
+        return db.query(Worker).filter_by(date_deleted=None).all()
 
     @staticmethod
     def get_by_id(worker_id: int, db: Session):

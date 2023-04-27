@@ -67,7 +67,7 @@ class SalesGateway:
 
     @staticmethod
     def get_all(db: Session):
-        return db.query(Sale).filter(date_deleted=None)
+        return db.query(Sale).filter(date_deleted=None).all()
 
     @staticmethod
     def get_by_id(sale_id: int, db: Session):

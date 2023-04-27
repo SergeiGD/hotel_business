@@ -280,7 +280,7 @@ class UsersGateway:
     @staticmethod
     def get_all():
         with get_session() as db:
-            return db.query(User).filter(date_deleted=None)
+            return db.query(User).filter(date_deleted=None).all()
 
     @staticmethod
     def get_by_id(user_id: int, db: Session):

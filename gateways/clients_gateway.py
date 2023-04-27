@@ -22,7 +22,7 @@ class ClientsGateway:
 
     @staticmethod
     def get_all(db: Session):
-        return db.query(Client).filter_by(date_deleted=None)
+        return db.query(Client).filter_by(date_deleted=None).all()
 
     @staticmethod
     def get_by_id(client_id: int, db: Session):
@@ -30,7 +30,7 @@ class ClientsGateway:
 
     @staticmethod
     def get_all_client_orders(clint: Client, db: Session):
-        return db.query(Order).filter_by(client_id=clint.id)
+        return db.query(Order).filter_by(client_id=clint.id).all()
 
     @staticmethod
     def get_client_order_by_id(clint: Client, order_id: int, db: Session):
