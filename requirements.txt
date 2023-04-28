@@ -5,3 +5,5 @@ PyJWT==2.6.0
 pytz==2023.3
 SQLAlchemy==2.0.9
 typing_extensions==4.5.0
+aiofiles==23.1.0
+types-aiofiles==23.1.0.1

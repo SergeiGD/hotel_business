@@ -9,7 +9,7 @@ from ..models.sales import Sale
 from ..models.orders import Purchase
 from ..settings import settings
 from hotel_business_module.utils.file_manager import FileManager
-from hotel_business_module.utils.protocols import SupportsReading
+from hotel_business_module.utils.protocols import SupportsReading, SupportsAsyncReading
 from sqlalchemy.orm import Session
 
 
@@ -160,17 +160,26 @@ class CategoriesGateway:
         #  получаем сами объекты категорий из полученного кортежа (cat_id, count_tags)
         familiar_items = db.query(Category).filter(
             Category.id.in_([item[0] for item in familiar_ids])
-        )
+        ).all()
         return familiar_items
 
     @staticmethod
-    def filter(filter: dict, db: Session):
+    def filter(db: Session, filter: dict | None = None):
         """
         Фильтрация категорий
         :param filter: параметры сортировки
         :param db: сессия БД
         :return:
         """
+        if filter is None:
+            # если не передан фильтр, то ставим стандратные значения у необходимых ключей
+            filter = {
+                'show_hidden': False,
+                'desc': False,
+                'page_size': 8,
+                'page': 1,
+                'sort_by': 'id',
+            }
         categories = db.query(Category).filter_by(date_deleted=None)
         if not filter['show_hidden']:
             categories = categories.filter_by(is_hidden=False)
@@ -247,14 +256,22 @@ class CategoriesGateway:
         limit = filter['page_size']
         offset = filter['page_size'] * (filter['page'] - 1)
         pages_count = math.ceil(categories.count() / filter['page_size'])
-        return categories.offset(offset).limit(limit), pages_count
+        return categories.offset(offset).limit(limit).all(), pages_count
 
     @staticmethod
     def save_category(category: Category, db: Session, file: Optional[SupportsReading], file_name: Optional[str]):
         db.add(category)
-        if file is not None:
-            # category.main_photo_path = FileManager.save_file(file, category.main_photo_path)
+        if file is not None and file_name is not None:
             category.main_photo_path = FileManager.save_file(
+                file=file, file_name=file_name, old_path=category.main_photo_path
+            )
+        db.commit()
+
+    @staticmethod
+    async def asave_category(category: Category, db: Session, file: Optional[SupportsAsyncReading], file_name: Optional[str]):
+        db.add(category)
+        if file is not None and file_name is not None:
+            category.main_photo_path = await FileManager.asave_file(
                 file=file, file_name=file_name, old_path=category.main_photo_path
             )
         db.commit()
@@ -296,7 +313,7 @@ class CategoriesGateway:
 
     @staticmethod
     def get_all(db: Session):
-        return db.query(Category).filter(date_deleted=None).all()
+        return db.query(Category).filter_by(date_deleted=None).all()
 
     @staticmethod
     def get_by_id(category_id: int, db: Session):

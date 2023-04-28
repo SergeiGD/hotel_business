@@ -12,7 +12,7 @@ class RoomsGateway:
 
         if room.id is None and room.room_number is None:
             current_max = db.query(func.max(Room.room_number)).filter(
-                Room.date_deleted == None
+                Room.date_deleted == None,
             ).scalar()
             if current_max is None:
                 room.room_number = 1
@@ -20,7 +20,6 @@ class RoomsGateway:
                 room.room_number = current_max + 1
 
         db.commit()
-        # db.refresh(room)
 
     @staticmethod
     def delete_room(room: Room, db: Session):

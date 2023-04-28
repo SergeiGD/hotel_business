@@ -25,6 +25,8 @@ class Room(Base):
 
     @validates('room_number')
     def validate_room_number(self, key, room_number):
+        if room_number is None:
+            return room_number
         with get_session() as db:
             if db.query(
                 select(Room).where(

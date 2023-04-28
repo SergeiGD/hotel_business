@@ -1,5 +1,11 @@
-from typing import Protocol, Callable
+from typing import Protocol, Awaitable
 
 
 class SupportsReading(Protocol):
-    read: Callable[..., bytes]
+    def read(self, *args, **kwargs) -> bytes:
+        pass
+
+
+class SupportsAsyncReading(Protocol):
+    def read(self, *args, **kwargs) -> Awaitable[bytes]:
+        pass
