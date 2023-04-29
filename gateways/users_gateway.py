@@ -6,7 +6,6 @@ import bcrypt
 import jwt
 from jwt.exceptions import DecodeError, ExpiredSignatureError
 from sqlalchemy.orm import Session
-from hotel_business_module.utils.email_sender import send_email
 from ..models.black_list_tokens import BlackListJWT
 from ..models.groups import group_permission
 from ..models.permissions import Permission
@@ -116,14 +115,7 @@ class UsersGateway:
         confirm_token = Token(user=user, token_type=TokenType.register, token=hashed_token)
         db.add(confirm_token)
         db.commit()
-        confirm_link = f'{settings.SITE_URL}/confirm_registration/{clean_token}'
 
-        # отправляем письмо
-        send_email(
-            subject='Подтверждение регистрации',
-            content=f'Для подтверждения регистрации перейдите по следующей ссылке: \n {confirm_link}',
-            send_to=user.email,
-        )
         return user, clean_token
 
     @staticmethod
@@ -162,15 +154,7 @@ class UsersGateway:
         reset_token = Token(user=user, token_type=TokenType.reset, token=hashed_token)
         db.add(reset_token)
         db.commit()
-        # формируем ссылку, которая будет отправена на почту
-        confirm_link = f'{settings.SITE_URL}/reset_password/{clean_token}'
 
-        # отправляем письмо
-        send_email(
-            subject='Сброс пароля',
-            content=f'Для сброса пароля перейдите по следующей ссылке: \n {confirm_link}',
-            send_to=user.email,
-        )
         return user, clean_token
 
     @staticmethod
