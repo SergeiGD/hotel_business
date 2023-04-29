@@ -2,7 +2,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from os import environ
 
-db_name = environ.get('DB_NAME', 'db_graphql')
+db_name = environ.get('DB_NAME', 'db_name')
 db_user = environ.get('DB_USER', 'db_user')
 db_password = environ.get('DB_PASSWORD', 'db_password')
 
