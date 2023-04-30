@@ -259,7 +259,12 @@ class CategoriesGateway:
         return categories.offset(offset).limit(limit).all(), pages_count
 
     @staticmethod
-    def save_category(category: Category, db: Session, file: Optional[SupportsReading], file_name: Optional[str]):
+    def save_category(
+            category: Category,
+            db: Session,
+            file: SupportsReading | None = None,
+            file_name: str | None = None
+    ):
         db.add(category)
         if file is not None and file_name is not None:
             category.main_photo_path = FileManager.save_file(
@@ -268,7 +273,12 @@ class CategoriesGateway:
         db.commit()
 
     @staticmethod
-    async def asave_category(category: Category, db: Session, file: Optional[SupportsAsyncReading], file_name: Optional[str]):
+    async def asave_category(
+            category: Category,
+            db: Session,
+            file: SupportsAsyncReading | None = None,
+            file_name: str | None = None
+    ):
         db.add(category)
         if file is not None and file_name is not None:
             category.main_photo_path = await FileManager.asave_file(
@@ -313,7 +323,7 @@ class CategoriesGateway:
 
     @staticmethod
     def get_all(db: Session):
-        return db.query(Category).filter_by(date_deleted=None).all()
+        return db.query(Category).filter(Category.date_deleted == None).all()
 
     @staticmethod
     def get_by_id(category_id: int, db: Session):

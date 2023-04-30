@@ -16,5 +16,7 @@ setup(
         'typing_extensions==4.5.0',
         'aiofiles==23.1.0',
         'types-aiofiles==23.1.0.1',
+        'python-dotenv==1.0.0',
+        'coverage==7.2.4',
     ],
 )
