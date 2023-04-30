@@ -5,7 +5,7 @@ setup(
     name='hotel_business_module',
     version='1.0',
     packages=find_packages(),
-    description='Бизнес логика для рабоы с отелем',
+    description='Бизнес логика для работы с отелем',
     install_requires=[
         'bcrypt==4.0.1',
         'greenlet==2.0.2',

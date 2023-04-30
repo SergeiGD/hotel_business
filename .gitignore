@@ -5,6 +5,7 @@
 *.coverage
 *htmlcov
 .mypy_cache
+*build
 .env
 venv
 
