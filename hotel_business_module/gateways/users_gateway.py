@@ -12,7 +12,6 @@ from ..models.permissions import Permission
 from ..models.tokens import Token, TokenType
 from ..models.users import User
 from ..models.users import user_group
-from ..session.session import get_session
 from ..settings import settings
 
 
@@ -262,9 +261,8 @@ class UsersGateway:
         return access_token, refresh_token
 
     @staticmethod
-    def get_all():
-        with get_session() as db:
-            return db.query(User).filter(date_deleted=None).all()
+    def get_all(db: Session):
+        return db.query(User).filter(date_deleted=None).all()
 
     @staticmethod
     def get_by_id(user_id: int, db: Session):

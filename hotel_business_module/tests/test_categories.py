@@ -1,10 +1,12 @@
 from unittest.mock import Mock, patch
-from datetime import datetime
+from datetime import datetime, timedelta
 from hotel_business_module.tests.base_test import BaseTest
 from hotel_business_module.gateways.categories_gateway import CategoriesGateway
 from hotel_business_module.gateways.tags_gateway import TagsGateway
+from hotel_business_module.gateways.rooms_gateway import RoomsGateway
 from hotel_business_module.models.categories import Category
 from hotel_business_module.models.tags import Tag
+from hotel_business_module.models.rooms import Room
 from hotel_business_module.tests.session import get_session
 
 
@@ -153,3 +155,44 @@ class TestCategories(BaseTest):
 
             # проверяем чтоб вернуло только категории с общими тегами
             self.assertEqual(CategoriesGateway.get_familiar(cat1, session), [cat2, cat3])
+
+    @patch('hotel_business_module.utils.file_manager.FileManager.save_file')
+    def test_pick_room(self, mock_save_file: Mock):
+        """
+        Тестирование поиска свободных комнат категории
+        """
+        mock_save_file.return_value = 'C:\\images\\image1.jpg'
+        file = Mock()
+        category = Category(
+            name='test_category',
+            description='lorem ipsum...',
+            price=999,
+            prepayment_percent=10,
+            refund_percent=50,
+            rooms_count=2,
+            floors=1,
+            beds=2,
+            square=50
+        )
+        # создаем категорию
+        CategoriesGateway.save_category(category, self.session, file=file, file_name=file.name)
+
+        # проверка подбора комнат, если у категории нету комнат
+        self.assertIsNone(CategoriesGateway.pick_room(
+            category=category,
+            start=datetime.now().date(),
+            end=(datetime.now() + timedelta(days=2)).date(),
+            db=self.session
+        ))
+
+        room = Room(category=category)
+        # сохраняем комнату
+        RoomsGateway.save_room(room, self.session)
+        picked_room = CategoriesGateway.pick_room(
+            category=category,
+            start=datetime.now().date(),
+            end=(datetime.now() + timedelta(days=2)).date(),
+            db=self.session
+        )
+        # проверяем, чтоб вернувшийся id был равен созданной комнате
+        self.assertEqual(picked_room, room.id)

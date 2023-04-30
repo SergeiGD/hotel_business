@@ -18,7 +18,13 @@ class CategoriesGateway:
     Класс для управления категориями
     """
     @staticmethod
-    def pick_room(category: Category, start: date, end: date, db: Session, purchase_id: Optional[int] = None):
+    def pick_room(
+            category: Category,
+            start: date,
+            end: date,
+            db: Session,
+            purchase_id: int | None = None
+    ) -> int | None:
         """
         Поиск свободной комнаты категории
         :param category: категория, у которой нужно найти комнату
