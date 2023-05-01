@@ -11,6 +11,22 @@ from hotel_business_module.tests.session import get_session
 
 
 class TestCategories(BaseTest):
+    def create_category(self, name: str = 'test_category'):
+        """
+        Удобное создание экземпляра категории для избежания дублирования
+        """
+        return Category(
+            name=name,
+            description='lorem ipsum...',
+            price=999,
+            prepayment_percent=10,
+            refund_percent=50,
+            rooms_count=2,
+            floors=1,
+            beds=2,
+            square=50
+        )
+
     @patch('hotel_business_module.utils.file_manager.FileManager.save_file')
     def test_save(self, mock_save_file: Mock):
         """
@@ -22,17 +38,7 @@ class TestCategories(BaseTest):
         file = Mock()
         with get_session() as session:
             # создаем категории
-            category = Category(
-                name='test_category',
-                description='lorem ipsum...',
-                price=999,
-                prepayment_percent=10,
-                refund_percent=50,
-                rooms_count=2,
-                floors=1,
-                beds=2,
-                square=50
-            )
+            category = self.create_category()
             CategoriesGateway.save_category(category, session, file=file, file_name=file.name)
 
             # проверяем, что сохранилось
@@ -53,17 +59,7 @@ class TestCategories(BaseTest):
         mock_save_file.return_value = 'C:\\images\\image1.jpg'
         file = Mock()
         with get_session() as session:
-            category = Category(
-                name='test_category',
-                description='lorem ipsum...',
-                price=999,
-                prepayment_percent=10,
-                refund_percent=50,
-                rooms_count=2,
-                floors=1,
-                beds=2,
-                square=50
-            )
+            category = self.create_category()
             # сохранеяем категорию
             CategoriesGateway.save_category(category, session, file=file, file_name=file.name)
 
@@ -82,17 +78,7 @@ class TestCategories(BaseTest):
         file = Mock()
         with get_session() as session:
             # создаем активную категорию
-            category = Category(
-                name='test_category',
-                description='lorem ipsum...',
-                price=999,
-                prepayment_percent=10,
-                refund_percent=50,
-                rooms_count=2,
-                floors=1,
-                beds=2,
-                square=50
-            )
+            category = self.create_category()
             # создаем удаленную категорию
             deleted_category = Category(
                 name='deleted_test_category',
@@ -124,17 +110,7 @@ class TestCategories(BaseTest):
         with get_session() as session:
             # создаем категории
             for i in range(5):
-                category = Category(
-                    name=f'test_category{i}',
-                    description='lorem ipsum...',
-                    price=999,
-                    prepayment_percent=10,
-                    refund_percent=50,
-                    rooms_count=2,
-                    floors=1,
-                    beds=2,
-                    square=50
-                )
+                category = self.create_category(f'test_category{i}')
                 CategoriesGateway.save_category(category, session, file=file, file_name=file.name)
                 cats_list.append(category)
 
@@ -163,17 +139,7 @@ class TestCategories(BaseTest):
         """
         mock_save_file.return_value = 'C:\\images\\image1.jpg'
         file = Mock()
-        category = Category(
-            name='test_category',
-            description='lorem ipsum...',
-            price=999,
-            prepayment_percent=10,
-            refund_percent=50,
-            rooms_count=2,
-            floors=1,
-            beds=2,
-            square=50
-        )
+        category = self.create_category()
         # создаем категорию
         CategoriesGateway.save_category(category, self.session, file=file, file_name=file.name)
 

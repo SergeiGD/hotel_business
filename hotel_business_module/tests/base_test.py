@@ -17,11 +17,13 @@ class BaseTest(unittest.TestCase):
         # Патчим получение сессий в модулях, чтою они использовали тестовое БД
         self.patchers = [
             patch('hotel_business_module.models.rooms.get_session', side_effect=get_session),
-            patch('hotel_business_module.models.order.get_session', side_effect=get_session),
+            patch('hotel_business_module.models.orders.get_session', side_effect=get_session),
             patch('hotel_business_module.models.users.get_session', side_effect=get_session),
             patch('hotel_business_module.models.photos.get_session', side_effect=get_session),
             patch('hotel_business_module.gateways.photos_gateway.get_session', side_effect=get_session)
         ]
+        for item in self.patchers:
+            item.start()
         # добавляем остановку патчеров при завершении
         self.addCleanup(self.stop_patches)
 
