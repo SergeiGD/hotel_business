@@ -11,9 +11,9 @@ from hotel_business_module.tests.session import get_session
 
 
 class TestCategories(BaseTest):
-    def create_category(self, name: str = 'test_category'):
+    def spawn_category(self, name: str = 'test_category') -> Category:
         """
-        Удобное создание экземпляра категории для избежания дублирования
+        Метод для создания экземпляра категории
         """
         return Category(
             name=name,
@@ -38,7 +38,7 @@ class TestCategories(BaseTest):
         file = Mock()
         with get_session() as session:
             # создаем категории
-            category = self.create_category()
+            category = self.spawn_category()
             CategoriesGateway.save_category(category, session, file=file, file_name=file.name)
 
             # проверяем, что сохранилось
@@ -59,7 +59,7 @@ class TestCategories(BaseTest):
         mock_save_file.return_value = 'C:\\images\\image1.jpg'
         file = Mock()
         with get_session() as session:
-            category = self.create_category()
+            category = self.spawn_category()
             # сохранеяем категорию
             CategoriesGateway.save_category(category, session, file=file, file_name=file.name)
 
@@ -78,20 +78,10 @@ class TestCategories(BaseTest):
         file = Mock()
         with get_session() as session:
             # создаем активную категорию
-            category = self.create_category()
+            category = self.spawn_category()
             # создаем удаленную категорию
-            deleted_category = Category(
-                name='deleted_test_category',
-                description='lorem ipsum...',
-                price=333,
-                prepayment_percent=33,
-                refund_percent=55,
-                rooms_count=2,
-                floors=2,
-                beds=4,
-                square=100,
-                date_deleted=datetime.now()
-            )
+            deleted_category = self.spawn_category('deleted_test_category')
+            deleted_category.date_deleted = datetime.now()
             # сохраняем их
             CategoriesGateway.save_category(category, session, file=file, file_name=file.name)
             CategoriesGateway.save_category(deleted_category, session, file=file, file_name=file.name)
@@ -110,7 +100,7 @@ class TestCategories(BaseTest):
         with get_session() as session:
             # создаем категории
             for i in range(5):
-                category = self.create_category(f'test_category{i}')
+                category = self.spawn_category(f'test_category{i}')
                 CategoriesGateway.save_category(category, session, file=file, file_name=file.name)
                 cats_list.append(category)
 
@@ -139,26 +129,27 @@ class TestCategories(BaseTest):
         """
         mock_save_file.return_value = 'C:\\images\\image1.jpg'
         file = Mock()
-        category = self.create_category()
-        # создаем категорию
-        CategoriesGateway.save_category(category, self.session, file=file, file_name=file.name)
+        with get_session() as session:
+            category = self.spawn_category()
+            # создаем категорию
+            CategoriesGateway.save_category(category, session, file=file, file_name=file.name)
 
-        # проверка подбора комнат, если у категории нету комнат
-        self.assertIsNone(CategoriesGateway.pick_room(
-            category=category,
-            start=datetime.now().date(),
-            end=(datetime.now() + timedelta(days=2)).date(),
-            db=self.session
-        ))
+            # проверка подбора комнат, если у категории нету комнат
+            self.assertIsNone(CategoriesGateway.pick_room(
+                category=category,
+                start=datetime.now().date(),
+                end=(datetime.now() + timedelta(days=2)).date(),
+                db=session
+            ))
 
-        room = Room(category=category)
-        # сохраняем комнату
-        RoomsGateway.save_room(room, self.session)
-        picked_room = CategoriesGateway.pick_room(
-            category=category,
-            start=datetime.now().date(),
-            end=(datetime.now() + timedelta(days=2)).date(),
-            db=self.session
-        )
-        # проверяем, чтоб вернувшийся id был равен созданной комнате
-        self.assertEqual(picked_room, room.id)
+            room = Room(category=category)
+            # сохраняем комнату
+            RoomsGateway.save_room(room, session)
+            picked_room = CategoriesGateway.pick_room(
+                category=category,
+                start=datetime.now().date(),
+                end=(datetime.now() + timedelta(days=2)).date(),
+                db=session
+            )
+            # проверяем, чтоб вернувшийся id был равен созданной комнате
+            self.assertEqual(picked_room, room.id)

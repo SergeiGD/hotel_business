@@ -13,7 +13,6 @@ class BaseTest(unittest.TestCase):
     def setUp(self):
         # создаем БД
         Base.metadata.create_all(engine)
-        self.session = get_session()
         # Патчим получение сессий в модулях, чтою они использовали тестовое БД
         self.patchers = [
             patch('hotel_business_module.models.rooms.get_session', side_effect=get_session),
@@ -29,7 +28,6 @@ class BaseTest(unittest.TestCase):
 
     def tearDown(self):
         # закрываем сессию
-        self.session.close()
         # удаляем БД
         Base.metadata.drop_all(engine)
 
