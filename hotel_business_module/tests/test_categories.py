@@ -33,7 +33,8 @@ class TestCategories(BaseTest):
         Тестирования сохранения категории
         """
         # мокаем метод сохранения файла, чтоб реально не сохранять, а просто получить имя
-        mock_save_file.return_value = 'C:\\images\\image1.jpg'
+        photo_path = 'C:\\images\\image1.jpg'
+        mock_save_file.return_value = photo_path
         # мокаем файл, чтоб отправить его как параметр
         file = Mock()
         with get_session() as session:
@@ -44,12 +45,12 @@ class TestCategories(BaseTest):
             # проверяем, что сохранилось
             self.assertIsNotNone(CategoriesGateway.get_by_id(category.id, session))
             # проверяем, присвоился ли путь
-            self.assertEqual(category.main_photo_path, 'C:\\images\\image1.jpg')
+            self.assertEqual(category.main_photo_path, photo_path)
 
             category.name = 'test_category_edited'
             CategoriesGateway.save_category(category, session)
             # проверяем не сломается ли путь при изменение сторонних свойств
-            self.assertEqual(category.main_photo_path, 'C:\\images\\image1.jpg')
+            self.assertEqual(category.main_photo_path, photo_path)
 
     @patch('hotel_business_module.utils.file_manager.FileManager.save_file')
     def test_delete(self, mock_save_file: Mock):

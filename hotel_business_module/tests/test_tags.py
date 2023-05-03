@@ -18,7 +18,7 @@ class TestTags(BaseTest):
             self.assertIsNotNone(TagsGateway.get_by_id(tag.id, session))
 
             # создаем тег с таким же названием
-            dup_tag = Tag(name='test_tag')
+            dup_tag = Tag(name=tag.name)
 
             # проверяем, чтоб вернул ошибку при создании тега с таким же названием
             self.assertRaises(ValueError, TagsGateway.save_tag, dup_tag, session)
