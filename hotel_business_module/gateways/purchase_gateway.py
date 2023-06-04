@@ -24,7 +24,7 @@ class PurchasesGateway:
         :return:
         """
         # берем категории комнаты, на которую оформлена покупка
-        category: Category = db.query(Room).get(purchase.room_id).category
+        category: Category = db.get(Room, purchase.room_id).category
         # считаем продолжительность покупки
         delta_seconds: Decimal = (purchase.end - purchase.start).total_seconds()
         SECONDS_IN_DAY: int = 86400

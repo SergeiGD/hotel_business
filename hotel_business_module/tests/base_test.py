@@ -13,21 +13,21 @@ class BaseTest(unittest.TestCase):
     def setUp(self):
         # создаем БД
         Base.metadata.create_all(engine)
-        self.session = get_session()
         # Патчим получение сессий в модулях, чтою они использовали тестовое БД
         self.patchers = [
             patch('hotel_business_module.models.rooms.get_session', side_effect=get_session),
-            patch('hotel_business_module.models.order.get_session', side_effect=get_session),
+            patch('hotel_business_module.models.orders.get_session', side_effect=get_session),
             patch('hotel_business_module.models.users.get_session', side_effect=get_session),
             patch('hotel_business_module.models.photos.get_session', side_effect=get_session),
             patch('hotel_business_module.gateways.photos_gateway.get_session', side_effect=get_session)
         ]
+        for item in self.patchers:
+            item.start()
         # добавляем остановку патчеров при завершении
         self.addCleanup(self.stop_patches)
 
     def tearDown(self):
         # закрываем сессию
-        self.session.close()
         # удаляем БД
         Base.metadata.drop_all(engine)
 

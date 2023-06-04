@@ -20,16 +20,17 @@ class PhotosGateway:
         """
         # создаем отдельную сессию, чтоб получить изначальный порядковый номер фотографии
         with get_session() as db:
+            category_id = photo.category_id if photo.category_id is not None else photo.category.id
             # ищем фотографию, с которой поменяется местами
             photo_to_swap = db.query(Photo).filter(
-                Photo.category_id == photo.category_id,
+                Photo.category_id == category_id,
                 Photo.order == photo.order
             ).first()
             if photo_to_swap is None:
                 raise ValueError('Не найдена фотография с таким номером')
 
             # меняем местами фотографии
-            current_order = db.query(Photo).get(photo.id).order
+            current_order = db.get(Photo, photo.id).order
             photo_to_swap.order = current_order
             # db.expunge(photo)
             db.add(photo_to_swap)
@@ -43,10 +44,13 @@ class PhotosGateway:
         :param db: сессия
         :return:
         """
+        db.refresh(photo)
+        category_id = photo.category_id if photo.category_id is not None else photo.category.id
+
         # все последующий фотографии сдвигаем на 1
         db.query(Photo).filter(
-            Photo.category_id == photo.category_id,
-            Photo.order > photo.order
+            Photo.category_id == category_id,
+            Photo.order > photo.order,
         ).update({'order': Photo.order - 1})
         # удаляем фото
         FileManager.delete_file(photo.path)
@@ -54,7 +58,12 @@ class PhotosGateway:
         db.commit()
 
     @classmethod
-    def save_photo(cls, photo: Photo, db: Session, file: Optional[SupportsReading], file_name: Optional[str]):
+    def save_photo(
+            cls, photo: Photo,
+            db: Session,
+            file: SupportsReading | None = None,
+            file_name: str | None = None,
+    ):
         # если обновляли и поменяли порядок, то меняем местами
         if photo.order is not None and inspect(photo).attrs.order.history.has_changes():
             cls.__swap_photos(photo)
@@ -62,9 +71,10 @@ class PhotosGateway:
         db.add(photo)
         # если создали новую, то автоматическа установливаем порядок (ставим последней)
         if photo.id is None and photo.order is None:
+            category_id = photo.category_id if photo.category_id is not None else photo.category.id
             #  ищем текущую крайнюю фотографию категории
             current_max = db.query(func.max(Photo.order)).filter(
-                Photo.category_id == photo.category_id
+                Photo.category_id == category_id
             ).scalar()
             if current_max is None:
                 # если это первая фотография категории, то ставим 1

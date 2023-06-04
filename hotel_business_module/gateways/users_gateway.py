@@ -52,37 +52,35 @@ class UsersGateway:
     def can_actions(user: User, codes: List[str], db: Session):
         """
         Проверка, если ли у пользователя права на выполение действий
-        :param user: пользователь, разрешения которого будут проверятся
+        :param user: пользователь, разрешения которого будут проверяться
         :param codes: список кодов разрешений
         :param db: сессия БД
         :return:
         """
-        db.add(user)
+        # если пользователя является суперпользователем, то сразу возвращаем True
         if hasattr(user, 'is_superuser') and user.is_superuser:
             return True
 
-        # получаем id разрешений пользователя
-        user_permissions = db.query(group_permission.c.permission_id).filter(
-            group_permission.c.group_id.in_(
-                db.query(user_group.c.group_id).filter(
-                    user_group.c.user_id == user.id,
-                )
-            )
+        # получаем список необходимых прав
+        required_permissions = db.query(Permission).filter(
+            Permission.code.in_(codes),
         )
 
-        # подзапрос, в котором получаем id необходимых разрешений
-        required_permissions = db.query(Permission.id.label('permission_id')).filter(
-            Permission.code.in_(codes),
-        ).subquery('required_permissions')
+        # получаем права пользователя
+        user_permissions = db.query(User.id, group_permission.c.permission_id).join(user_group).join(
+            group_permission, group_permission.c.group_id == user_group.c.group_id
+        ).filter(
+            User.id == user.id,
+        ).subquery('user_permissions')
 
-        if db.query(
-                db.query(required_permissions).filter(
-                    required_permissions.c.permission_id.not_in(user_permissions)
-                ).exists()
-        ).scalar():
-            # если не хватет каких-то прав, то возращаем False
+        # получаем объединение прав пользователя с необходимым правами
+        user_required_permissions = required_permissions.join(
+            user_permissions, user_permissions.c.permission_id == Permission.id
+        )
+
+        # если кол-во необходимых права пользователя меньше переданного списка необхимых прав, то прав не хватает
+        if user_required_permissions.count() < required_permissions.count():
             return False
-
         return True
 
     @staticmethod
@@ -133,7 +131,6 @@ class UsersGateway:
         db.commit()
 
     @staticmethod
-    # def request_reset(user: User):
     def request_reset(email: str, db: Session):
         """
         Запроса сброса пароля

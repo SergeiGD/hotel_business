@@ -269,7 +269,7 @@ class CategoriesGateway:
             category: Category,
             db: Session,
             file: SupportsReading | None = None,
-            file_name: str | None = None
+            file_name: str | None = None,
     ):
         db.add(category)
         if file is not None and file_name is not None:
