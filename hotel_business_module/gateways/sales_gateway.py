@@ -5,7 +5,7 @@ from sqlalchemy import desc
 from ..models.sales import Sale
 from ..settings import settings
 from hotel_business_module.utils.file_manager import FileManager
-from hotel_business_module.utils.protocols import SupportsReading
+from hotel_business_module.utils.protocols import SupportsReading, SupportsAsyncReading
 from sqlalchemy.orm import Session
 
 
@@ -13,8 +13,22 @@ class SalesGateway:
     @staticmethod
     def save_sale(sale: Sale, db: Session, file: Optional[SupportsReading], file_name: Optional[str]):
         db.add(sale)
-        if file is not None:
+        if file is not None and file_name is not None:
             sale.image_path = FileManager.save_file(file=file, file_name=file_name, old_path=sale.image_path)
+        db.commit()
+
+    @staticmethod
+    async def asave_sale(
+            sale: Sale,
+            db: Session,
+            file: SupportsAsyncReading | None = None,
+            file_name: str | None = None
+    ):
+        db.add(sale)
+        if file is not None and file_name is not None:
+            sale.image_path = await FileManager.asave_file(
+                file=file, file_name=file_name, old_path=sale.image_path
+            )
         db.commit()
 
     @staticmethod
@@ -67,7 +81,7 @@ class SalesGateway:
 
     @staticmethod
     def get_all(db: Session):
-        return db.query(Sale).filter(date_deleted=None).all()
+        return db.query(Sale).filter(Sale.date_deleted == None).all()
 
     @staticmethod
     def get_by_id(sale_id: int, db: Session):
