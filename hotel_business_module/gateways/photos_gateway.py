@@ -4,7 +4,7 @@ from ..models.photos import Photo
 from hotel_business_module.utils.file_manager import FileManager
 from ..session.session import get_session
 from sqlalchemy.orm import Session
-from hotel_business_module.utils.protocols import SupportsReading
+from hotel_business_module.utils.protocols import SupportsReading, SupportsAsyncReading
 
 
 class PhotosGateway:
@@ -58,11 +58,10 @@ class PhotosGateway:
         db.commit()
 
     @classmethod
-    def save_photo(
-            cls, photo: Photo,
+    def __presave_action(
+            cls,
+            photo: Photo,
             db: Session,
-            file: SupportsReading | None = None,
-            file_name: str | None = None,
     ):
         # если обновляли и поменяли порядок, то меняем местами
         if photo.order is not None and inspect(photo).attrs.order.history.has_changes():
@@ -82,9 +81,36 @@ class PhotosGateway:
             else:
                 photo.order = current_max + 1
 
-        if file is not None:
+    @classmethod
+    def save_photo(
+            cls,
+            photo: Photo,
+            db: Session,
+            file: SupportsReading | None = None,
+            file_name: str | None = None,
+    ):
+        cls.__presave_action(photo, db)
+
+        if file is not None and file_name is not None:
             path = FileManager.save_file(file=file, file_name=file_name, old_path=photo.path)
             photo.path = path
+
+        db.commit()
+
+    @classmethod
+    async def asave_photo(
+            cls,
+            photo: Photo,
+            db: Session,
+            file: SupportsAsyncReading | None = None,
+            file_name: str | None = None,
+    ):
+        cls.__presave_action(photo, db)
+
+        if file is not None and file_name is not None:
+            photo.path = await FileManager.asave_file(
+                file=file, file_name=file_name, old_path=photo.path
+            )
 
         db.commit()
 
