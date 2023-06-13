@@ -198,19 +198,19 @@ class CategoriesGateway:
                 Category.name.icontains(filter['name'])
             )
         if 'beds_from' in filter:
-            categories.filter(
+            categories = categories.filter(
                 Category.beds >= filter['beds_from']
             )
         if 'beds_until' in filter:
-            categories.filter(
+            categories = categories.filter(
                 Category.beds <= filter['beds_until']
             )
         if 'floors_from' in filter:
-            categories.filter(
+            categories = categories.filter(
                 Category.floors >= filter['floors_from']
             )
         if 'floors_until' in filter:
-            categories.filter(
+            categories = categories.filter(
                 Category.floors <= filter['floors_until']
             )
         if 'square_from' in filter:
