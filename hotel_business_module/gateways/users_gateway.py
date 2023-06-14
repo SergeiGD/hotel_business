@@ -49,6 +49,19 @@ class UsersGateway:
         return user
 
     @staticmethod
+    def get_user_permissions(user: User, db: Session):
+        """
+        Получение всех прав пользователя
+        :param user:
+        :param db:
+        :return:
+        """
+        return db.query(Permission).join(group_permission).join(
+            user_group, user_group.c.group_id == group_permission.c.group_id
+        ).filter(user_group.c.user_id == user.id).all()
+
+
+    @staticmethod
     def can_actions(user: User, codes: List[str], db: Session):
         """
         Проверка, если ли у пользователя права на выполение действий
